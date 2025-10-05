@@ -155,7 +155,7 @@ function parseAcc(text){
   res.tuong = tuong ? parseInt(tuong[1],10) : (text.match(/HERO\\s*:?\\s*(\\d+)/i)? parseInt(text.match(/HERO\\s*:?\\s*(\\d+)/i)[1],10) : 0);
   res.skinCount = skinCount ? parseInt(skinCount[1],10) : 0;
   // get all bracket groups
-  const bracket = /\\[([^\\]]+)\\]/g;
+const bracket = /\[([^\]]+)\]/g;
   let m;
   const arr=[];
   while((m=bracket.exec(text))!==null){
