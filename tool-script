@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<title>Tool Ghép Skin — Auto Canvas & Fit Crop</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --accent:#2196f3;
+    --accent-hover:#1976d2;
+    --bg:#f0f3f9;
+    --card:#fff;
+    --text:#111;
+  }
+  body{
+    font-family:'Poppins',system-ui,Segoe UI,Roboto,sans-serif;
+    margin:0;
+    background:linear-gradient(180deg,#e8f0ff,#f9f9f9);
+    color:var(--text);
+  }
+  .wrap{max-width:1150px;margin:30px auto;padding:20px;}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  h1{font-size:22px;margin:0;font-weight:600;color:#0d47a1}
+  .panel{display:grid;grid-template-columns:1fr 440px;gap:16px}
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.06);
+    transition:all .2s;
+  }
+  .card:hover{box-shadow:0 6px 24px rgba(0,0,0,0.08);}
+  textarea{
+    width:100%;height:120px;border-radius:10px;padding:10px 12px;
+    border:1px solid #ccd2dc;resize:vertical;font-family:monospace;font-size:14px;
+  }
+  button{
+    background:var(--accent);
+    color:#fff;border:0;padding:10px 16px;border-radius:8px;
+    cursor:pointer;transition:all .15s;font-weight:500;
+  }
+  button:hover{background:var(--accent-hover);}
+  button.secondary{background:#43a047;}
+  button.secondary:hover{background:#2e7d32;}
+  select{
+    border:1px solid #ccc;padding:8px;border-radius:6px;font-size:14px;
+  }
+  .small{font-size:13px;color:#555}
+  #previewWrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+  canvas{max-width:100%;border-radius:10px;background:#fff;border:1px solid #ccc}
+  .skinsGrid{display:flex;flex-wrap:wrap;gap:6px;padding:6px;max-height:360px;overflow:auto}
+  .skinThumb{width:64px;height:64px;border-radius:8px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;background:#fafafa;overflow:hidden;transition:transform .15s}
+  .skinThumb:hover{transform:scale(1.05);}
+  .skinThumb img{width:100%;height:100%;object-fit:cover}
+  footer{margin-top:16px;text-align:center;color:#666;font-size:13px}
+  .log{font-family:monospace;background:#0f1724;color:#bcd;padding:8px;border-radius:8px;max-height:160px;overflow:auto;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>✨ Tool Ghép Skin — Auto Fit Crop & Canvas</h1></header>
+
+  <div class="panel">
+    <!-- Cột trái -->
+    <div class="card">
+      <div class="small">Dán chuỗi thông tin acc:</div>
+      <textarea id="accText" placeholder="vd: Lamonskt:37a31997 | NAME : _Only•Gyoˇ☻ | ... | TƯỚNG : 105 | SKIN : 253 | SS : 5 [Yorn..., ...]"></textarea>
+
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+        <button id="btnLoad">🚀 Load & Ghép</button>
+        <button id="btnDownload" class="secondary">💾 Tải ảnh</button>
+        <select id="scaleSelect" style="margin-left:auto;">
+          <option value="1">Scale 1x</option>
+          <option value="1.5">Scale 1.5x</option>
+          <option value="2">Scale 2x</option>
+        </select>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="small">Toạ độ / ảnh nền: <code>https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/ToadoXyz.json</code></div>
+        <div class="small">File ID skin: <code>https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/FileIdtuong.json</code></div>
+      </div>
+
+      <hr style="margin:12px 0;border:none;border-top:1px solid #eee"/>
+
+      <div class="small">Preview skin thumbnails:</div>
+      <div class="skinsGrid card" id="thumbs"></div>
+
+      <div style="margin-top:10px">
+        <div class="small">Log:</div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <!-- Cột phải -->
+    <div class="card" id="previewWrap">
+      <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
+        <div class="small">Kết quả Canvas</div>
+        <div class="small" id="countInfo">Tướng: 0 — Skin: 0 — Ghép: 0</div>
+      </div>
+      <canvas id="mainCanvas" width="807" height="1280"></canvas>
+    </div>
+  </div>
+
+  <footer>Made by 🧠 GPT — Giữ tính năng cũ, fix lỗi crop, ghép sát, UI đẹp hơn.</footer>
+</div>
+
+<script>
+(async()=>{
+const TOADO_URL="https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/ToadoXyz.json";
+const FILEID_URL="https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/FileIdtuong.json";
+const $=id=>document.getElementById(id);
+const logEl=$('log');
+function log(...a){logEl.innerText+=a.map(x=>typeof x==='object'?JSON.stringify(x):x).join(' ')+"\\n";logEl.scrollTop=999999;}
+function githubBlobToRaw(u){if(!u)return u;if(u.includes("raw.githubusercontent.com"))return u;return u.replace("https://github.com/","https://raw.githubusercontent.com/").replace("/blob/","/");}
+async function fetchJSON(u){const r=await fetch(u);if(!r.ok)throw new Error("Fetch lỗi "+r.status);return await r.json();}
+function loadImage(u,t=12000){return new Promise((res,rej)=>{if(!u)return rej(new Error("No URL"));const i=new Image();i.crossOrigin="anonymous";let d=false;const to=setTimeout(()=>{if(!d){d=true;rej(new Error("Timeout "+u));}},t);i.onload=()=>{if(d)return;d=true;clearTimeout(to);res(i)};i.onerror=()=>{if(d)return;d=true;clearTimeout(to);rej(new Error("Load error "+u));};i.src=u;});}
+function parseAcc(txt){const r={tuong:0,skinCount:0,cropSkins:[]};if(!txt)return r;const t=txt.match(/TƯỚNG\\s*:\\s*(\\d+)/i);const s=txt.match(/SKIN\\s*:\\s*(\\d+)/i);r.tuong=t?parseInt(t[1]):0;r.skinCount=s?parseInt(s[1]):0;const b=/\\[([^\\]]+)\\]/g;let m;const a=[];while((m=b.exec(txt))!==null){m[1].split(',').map(x=>x.trim()).filter(Boolean).forEach(x=>a.push(x));}r.cropSkins=[...new Set(a)].filter(Boolean);return r;}
+const canvas=$('mainCanvas');let ctx=canvas.getContext('2d');let toadoData=null;let fileIdMap={};
+async function initData(){log("Đang tải dữ liệu...");toadoData=await fetchJSON(TOADO_URL);const arr=await fetchJSON(FILEID_URL);if(Array.isArray(arr)){for(const it of arr){const n=(it.skin||'').trim();let u=it.url||'';if(u)u=githubBlobToRaw(u);fileIdMap[n]=u;}}else{for(const k of Object.keys(arr)){let u=arr[k];if(typeof u==='string')u=githubBlobToRaw(u);fileIdMap[k]=u;}}log("Số skin mapping:",Object.keys(fileIdMap).length);}
+function getScale(){const ow=(toadoData?.image?.originalWidth)||canvas.width;const oh=(toadoData?.image?.originalHeight)||canvas.height;return{scaleX:canvas.width/ow,scaleY:canvas.height/oh};}
+function drawBaseImage(i){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(i,0,0,canvas.width,canvas.height);}
+function drawNumberAt(c,t,color="#ff3b3b",size=36){if(!c)return;const{scaleX,scaleY}=getScale();const x=c.x*scaleX,y=c.y*scaleY;ctx.fillStyle=color;ctx.font=`bold ${size}px sans-serif`;ctx.strokeStyle="#fff";ctx.lineWidth=Math.max(2,Math.round(size/12));ctx.strokeText(String(t),x+1,y+1);ctx.fillText(String(t),x+1,y+1);}
+async function drawSkinsInCrop(cropRegion,skinNames){
+ if(!cropRegion||skinNames.length===0)return 0;
+ const{scaleX,scaleY}=getScale();
+ const cx=cropRegion.x*scaleX,cy=cropRegion.y*scaleY,cw=cropRegion.w*scaleX,ch=cropRegion.h*scaleY;
+ const n=skinNames.length;
+ let cols=Math.ceil(Math.sqrt(n*cw/ch)),rows=Math.ceil(n/cols);
+ const tileW=Math.floor(cw/cols),tileH=Math.floor(ch/rows);
+ const imgs=await Promise.all(skinNames.map(async name=>{
+   const url=fileIdMap[name]||null;
+   if(!url)return{name,img:null};
+   try{return{name,img:await loadImage(url,10000)}}catch(e){return{name,img:null}}}));
+ let idx=0;
+ for(let r=0;r<rows;r++){
+   for(let c=0;c<cols;c++){
+     if(idx>=imgs.length)break;
+     const it=imgs[idx],dx=Math.floor(cx+c*tileW),dy=Math.floor(cy+r*tileH);
+     if(it.img){
+       const sc=Math.max(tileW/it.img.width,tileH/it.img.height);
+       const w=it.img.width*sc,h=it.img.height*sc;
+       const sx=(w>tileW)?(w-tileW)/2:0,sy=(h>tileH)?(h-tileH)/2:0;
+       ctx.save();
+       ctx.beginPath();ctx.rect(dx,dy,tileW,tileH);ctx.clip();
+       ctx.drawImage(it.img,dx-sx,dy-sy,w,h);
+       ctx.restore();
+     }else{
+       ctx.fillStyle="#e5e7eb";ctx.fillRect(dx,dy,tileW,tileH);
+       ctx.fillStyle="#333";ctx.font="10px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+       ctx.fillText(it.name,dx+tileW/2,dy+tileH/2);
+     }
+     idx++;
+   }
+ }
+ return imgs.length;
+}
+await initData();
+$('btnLoad').addEventListener('click',async()=>{
+ try{
+   const txt=$('accText').value.trim();if(!txt)return alert("Dán chuỗi acc vào.");
+   const p=parseAcc(txt);log("Parsed:",p);
+   $('countInfo').innerText=`Tướng: ${p.tuong} — Skin: ${p.skinCount} — Ghép: 0`;
+   const baseUrl=toadoData.image?.url;let baseImg=await loadImage(baseUrl,15000);
+   const scale=parseFloat($('scaleSelect').value)||1;
+   const ow=toadoData.image.originalWidth||baseImg.width,oh=toadoData.image.originalHeight||baseImg.height;
+   canvas.width=Math.round(ow*scale);canvas.height=Math.round(oh*scale);
+   drawBaseImage(baseImg);
+   const tuongC=toadoData.tuong.original,skinC=toadoData.skin.original;
+   if(tuongC)drawNumberAt(tuongC,p.tuong,"#ff3b3b",Math.max(24,36*scale));
+   if(skinC)drawNumberAt(skinC,p.skinCount,"#1f8ef1",Math.max(24,36*scale));
+   const crop=toadoData.crop.original;
+   const placed=await drawSkinsInCrop(crop,p.cropSkins);
+   $('countInfo').innerText=`Tướng: ${p.tuong} — Skin: ${p.skinCount} — Ghép: ${placed}`;
+   const thumbs=$('thumbs');thumbs.innerHTML="";
+   for(const nm of p.cropSkins){
+     const div=document.createElement('div');div.className='skinThumb';
+     const u=fileIdMap[nm];if(u){const im=document.createElement('img');im.src=u;div.appendChild(im);}else div.textContent=nm.slice(0,10);
+     thumbs.appendChild(div);
+   }
+   log("Hoàn thành! Ghép:",placed);
+ }catch(e){log("Lỗi:",e.message);alert(e.message);}
+});
+$('btnDownload').addEventListener('click',()=>{
+ const a=document.createElement('a');a.download='acc_canvas.png';a.href=canvas.toDataURL('image/png');a.click();
+});
+})();
+</script>
+</body>
+</html>
