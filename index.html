@@ -1,152 +1,157 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tool Ghép Ảnh Acc Liên Quân (Full iPhone Support)</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tool Ghép Skin (Auto + Ảnh Acc + Lịch Sử + Mã Số)</title>
 <style>
-  body{font-family:Inter,system-ui,sans-serif;background:#f5f7fb;margin:0;padding:10px}
-  h2{text-align:center}
-  .wrap{max-width:1100px;margin:auto}
-  .card{background:#fff;border-radius:10px;padding:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-bottom:10px}
-  textarea{width:100%;height:100px;border-radius:6px;padding:8px;border:1px solid #ccc;font-family:monospace}
-  input[type="file"],input[type="text"]{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;margin-top:4px}
-  button{background:#007bff;color:#fff;border:none;padding:10px 14px;border-radius:6px;cursor:pointer}
-  button:active{opacity:0.8}
-  #log{background:#0f172a;color:#bcd;font-size:12px;padding:8px;border-radius:6px;height:140px;overflow:auto;white-space:pre-line}
-  canvas{width:100%;max-width:807px;border:1px solid #ccc;border-radius:8px;background:#fff}
+:root{--accent:#1f8ef1;--bg:#f5f7fb;--card:#fff}
+body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#111}
+.wrap{max-width:1100px;margin:20px auto;padding:18px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+h1{font-size:18px;margin:0}
+.panel{display:grid;grid-template-columns:1fr 420px;gap:14px}
+.card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 6px 20px rgba(16,24,40,0.04)}
+textarea{width:100%;height:120px;border-radius:8px;padding:10px;border:1px solid #e6e9ef;resize:vertical;font-family:monospace;}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer}
+button.secondary{background:#4caf50}
+.small{font-size:13px;color:#555}
+canvas{max-width:100%;border-radius:8px;background:#fff;border:1px solid #ddd}
+.log{font-family:monospace;background:#0f1724;color:#bcd;padding:8px;border-radius:6px;max-height:160px;overflow:auto;font-size:12px;white-space:pre-wrap}
+input[type="file"]{display:none}
+label.upload-btn{background:#007bff;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:14px}
+input.msInput{padding:8px;border-radius:6px;border:1px solid #ccc;width:120px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h2>Tool Ghép Ảnh Acc Liên Quân (Full + iPhone Upload)</h2>
+  <header><h1>Tool Ghép Skin + Ảnh Acc + Lịch Sử + Mã Số</h1></header>
 
-  <div class="card">
-    <label>🧾 Dán thông tin acc:</label>
-    <textarea id="accText" placeholder="Dán chuỗi info acc vào đây..."></textarea>
+  <div class="panel">
+    <div class="card">
+      <div class="small">Dán chuỗi thông tin acc:</div>
+      <textarea id="accText" placeholder="vd: Lamonskt:37a31997 | NAME : _Only•Gyoˇ☻ | ... | TƯỚNG : 105 | SKIN : 253 | SS : 5 [...]"></textarea>
+      
+      <div class="row" style="margin-top:8px">
+        <button id="btnLoad">Load & Ghép</button>
+        <button id="btnDownload" class="secondary">Tải ảnh</button>
+        <select id="scaleSelect" style="margin-left:auto;padding:6px;border-radius:6px;border:1px solid #ddd">
+          <option value="1">Canvas scale 1x</option>
+          <option value="1.5">Canvas scale 1.5x</option>
+          <option value="2">Canvas scale 2x</option>
+        </select>
+      </div>
 
-    <label>🖼️ Ảnh Acc:</label>
-    <input type="file" id="accImageInput" accept="image/*">
+      <hr style="margin:10px 0;border:none;border-top:1px solid #eee"/>
 
-    <label>📜 Ảnh Lịch sử đấu:</label>
-    <input type="file" id="lichsuImageInput" accept="image/*">
+      <div class="row">
+        <label for="accImg" class="upload-btn">📸 Chọn ảnh ACC</label>
+        <input type="file" id="accImg" accept="image/*">
+        <label for="lichsuImg" class="upload-btn">🕹️ Chọn ảnh Lịch Sử</label>
+        <input type="file" id="lichsuImg" accept="image/*">
+      </div>
 
-    <label>🔢 Mã Số (MS):</label>
-    <input type="text" id="maSoInput" placeholder="vd: 001">
+      <div class="row" style="margin-top:8px">
+        <label>MS:</label>
+        <input type="text" id="msInput" class="msInput" placeholder="001">
+      </div>
 
-    <div style="margin-top:10px;display:flex;gap:10px">
-      <button id="btnLoad">Ghép Ảnh</button>
-      <button id="btnDownload">Tải Ảnh</button>
+      <hr style="margin:10px 0;border:none;border-top:1px solid #eee"/>
+
+      <div class="small">Log / trạng thái:</div>
+      <div class="log" id="log">(chưa có log)</div>
     </div>
-  </div>
 
-  <div class="card">
-    <div><b>📋 Log:</b></div>
-    <div id="log">(chưa có log)</div>
-  </div>
-
-  <div class="card">
-    <div><b>📷 Kết quả:</b></div>
-    <canvas id="canvas" width="807" height="1280"></canvas>
+    <div class="card" id="previewWrap">
+      <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
+        <div class="small">Canvas kết quả</div>
+        <div class="small" id="countInfo">Tướng: 0 — SkinCount: 0 — Ghép: 0</div>
+      </div>
+      <canvas id="mainCanvas" width="807" height="1280"></canvas>
+    </div>
   </div>
 </div>
 
 <script>
 (async()=>{
-const TOADO_URL = "https://raw.githubusercontent.com/HoshinoKotaSouma/shopaccbeorin/main/ToadoXyz.json";
+const TOADO_URL = "https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/ToadoXyz.json";
 const FILEID_URL = "https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/FileIdtuong.json";
 
 const $=id=>document.getElementById(id);
 const logEl=$('log');
-function log(...a){logEl.textContent+=a.join(' ')+"\\n";logEl.scrollTop=99999;}
+function log(...a){logEl.innerText+=a.map(x=>typeof x==='object'?JSON.stringify(x):x).join(' ')+"\\n";logEl.scrollTop=99999;}
 
-async function fetchJSON(u){const r=await fetch(u);if(!r.ok)throw new Error("Fetch lỗi "+u);return await r.json();}
-function loadImage(url){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=()=>rej(new Error("Lỗi ảnh "+url));i.src=url;});}
-function fileToImage(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=r.result;};r.onerror=rej;r.readAsDataURL(file);});}
-function parseAcc(txt){const t=txt.match(/TƯỚNG\\s*:\\s*(\\d+)/i),s=txt.match(/SKIN\\s*:\\s*(\\d+)/i);return{tuong:t?+t[1]:0,skin:s?+s[1]:0};}
+function githubBlobToRaw(u){if(!u)return u;if(u.includes("raw.githubusercontent.com"))return u;return u.replace("https://github.com/","https://raw.githubusercontent.com/").replace("/blob/","/");}
 
-const canvas=$('canvas');const ctx=canvas.getContext('2d');
-let toado,fileMap={};
-try{
-  log("🔹 Đang tải ToadoXyz...");
-  toado=await fetchJSON(TOADO_URL);
-  log("✅ Tải thành công ToadoXyz");
-  log("🔹 Đang tải FileIdtuong...");
-  const f=await fetchJSON(FILEID_URL);
-  for(const k in f){fileMap[k]=f[k];}
-  log("✅ Tải thành công FileIdtuong");
-}catch(e){log("❌ Lỗi tải dữ liệu:",e.message);return;}
+async function fetchJSON(u){const r=await fetch(u);if(!r.ok)throw new Error("Fetch lỗi "+u+" → "+r.status);return await r.json();}
+function loadImage(url){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=()=>rej("Load fail "+url);i.src=url;});}
+function readLocalImage(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=e.target.result;};r.onerror=rej;r.readAsDataURL(file);});}
 
-$('btnLoad').onclick=async()=>{
+function parseAcc(t){const r={tuong:0,skinCount:0,cropSkins:[]};if(!t)return r;const tu=t.match(/TƯỚNG\\s*:\\s*(\\d+)/i);const sk=t.match(/SKIN\\s*:\\s*(\\d+)/i);r.tuong=tu?parseInt(tu[1]):0;r.skinCount=sk?parseInt(sk[1]):0;const arr=[];let m;const re=/\\[([^\\]]+)\\]/g;while((m=re.exec(t))!==null){m[1].split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>arr.push(s));}r.cropSkins=[...new Set(arr)];return r;}
+
+const canvas=$('mainCanvas');const ctx=canvas.getContext('2d');
+let toadoData=null,fileIdMap={};let accImg=null,lichsuImg=null;
+
+$('accImg').addEventListener('change',async e=>{
+ if(e.target.files[0]){accImg=await readLocalImage(e.target.files[0]);log("Ảnh ACC loaded ✓");}
+});
+$('lichsuImg').addEventListener('change',async e=>{
+ if(e.target.files[0]){lichsuImg=await readLocalImage(e.target.files[0]);log("Ảnh Lịch Sử loaded ✓");}
+});
+
+async function initData(){
  try{
-  log("🚀 Bắt đầu ghép...");
-  const info=$('accText').value.trim();
-  if(!info)return alert("Nhập thông tin acc!");
-  const parsed=parseAcc(info);
-  log("📊 Parsed:",JSON.stringify(parsed));
+  log("🔹 Đang tải ToadoXyz...");
+  toadoData=await fetchJSON(TOADO_URL);
+  log("✅ Toado loaded.");
+  const f=await fetchJSON(FILEID_URL);
+  for(const k in f){fileIdMap[k]=f[k];}
+  log("✅ FileId loaded:",Object.keys(fileIdMap).length,"entries");
+ }catch(e){log("❌ Lỗi tải dữ liệu:",e.message);}
+}
 
-  const maSo=$('maSoInput').value.trim();
-  const accFile=$('accImageInput').files[0];
-  const lichsuFile=$('lichsuImageInput').files[0];
-  if(!accFile||!lichsuFile)return alert("Chọn ảnh acc và lịch sử đấu!");
+function getScale(){const ow=toadoData.image.originalWidth,oh=toadoData.image.originalHeight;return{sx:canvas.width/ow,sy:canvas.height/oh};}
+function drawBase(img){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);}
+function drawTextAt(pos,text,color,size){if(!pos)return;const{sx,sy}=getScale();ctx.fillStyle=color;ctx.font=`bold ${size}px sans-serif`;ctx.strokeStyle="#000";ctx.lineWidth=3;ctx.strokeText(text,pos.x*sx,pos.y*sy);ctx.fillText(text,pos.x*sx,pos.y*sy);}
+function drawImageInRegion(img,reg){if(!img||!reg)return;const{sx,sy}=getScale();ctx.drawImage(img,reg.x*sx,reg.y*sy,reg.w*sx,reg.h*sy);}
 
-  const baseImg=await loadImage(toado.image.url);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(baseImg,0,0,canvas.width,canvas.height);
-  log("🖼️ Đã vẽ ảnh nền");
+await initData();
 
-  const accImg=await fileToImage(accFile);
-  const lichsuImg=await fileToImage(lichsuFile);
+$('btnLoad').addEventListener('click',async()=>{
+ try{
+  log("🔸 Bắt đầu xử lý...");
+  const accText=$('accText').value.trim();
+  const parsed=parseAcc(accText);
+  log("Parsed:",parsed);
+  const base=await loadImage(toadoData.image.url);
+  const sc=parseFloat($('scaleSelect').value)||1;
+  canvas.width=toadoData.image.originalWidth*sc;
+  canvas.height=toadoData.image.originalHeight*sc;
+  drawBase(base);
 
-  // vùng acc
-  if(toado.extra&&toado.extra.accCrop){
-    const c=toado.extra.accCrop;
-    ctx.drawImage(accImg,c.x,c.y,c.w,c.h);
-    log("✅ Dán ảnh acc");
-  }
-  // vùng lịch sử
-  if(toado.extra&&toado.extra.lichsuCrop){
-    const c=toado.extra.lichsuCrop;
-    ctx.drawImage(lichsuImg,c.x,c.y,c.w,c.h);
-    log("✅ Dán ảnh lịch sử đấu");
-  }
+  // vẽ số tướng, skin
+  drawTextAt(toadoData.tuong.original,parsed.tuong,"#ff3b3b",36*sc);
+  drawTextAt(toadoData.skin.original,parsed.skinCount,"#1f8ef1",36*sc);
 
-  // ghi số tướng, skin
-  const scx=canvas.width/toado.image.originalWidth;
-  const scy=canvas.height/toado.image.originalHeight;
-  ctx.font="bold 36px Arial";
-  ctx.strokeStyle="#fff";
-  ctx.lineWidth=3;
-  ctx.fillStyle="#ff3b3b";
-  if(toado.tuong)ctx.fillText(parsed.tuong,toado.tuong.original.x*scx,toado.tuong.original.y*scy);
-  ctx.fillStyle="#1f8ef1";
-  if(toado.skin)ctx.fillText(parsed.skin,toado.skin.original.x*scx,toado.skin.original.y*scy);
+  // chèn ảnh acc
+  if(accImg){drawImageInRegion(accImg,toadoData.extra.acc);log("✓ Đã chèn ảnh ACC");}
+  // chèn ảnh lịch sử
+  if(lichsuImg){drawImageInRegion(lichsuImg,toadoData.extra.lichsu);log("✓ Đã chèn ảnh Lịch Sử");}
+  // vẽ mã số
+  const ms=$('msInput').value.trim();
+  if(ms){drawTextAt(toadoData.ms,"MS: "+ms,"#ffd700",toadoData.ms.fontSize||48);log("✓ Đã ghi mã số:",ms);}
+  log("✅ Hoàn tất!");
+ }catch(e){log("❌ Lỗi:",e.message);}
+});
 
-  // ghi mã số
-  if(toado.ms){
-    ctx.font=`bold ${toado.ms.fontSize||40}px Arial`;
-    ctx.fillStyle="#fff";
-    ctx.strokeStyle="#000";
-    ctx.lineWidth=4;
-    ctx.strokeText("MS : "+maSo,toado.ms.x,toado.ms.y);
-    ctx.fillText("MS : "+maSo,toado.ms.x,toado.ms.y);
-    log("🆔 Vẽ mã số:",maSo);
-  }
+$('btnDownload').addEventListener('click',()=>{
+ const link=document.createElement('a');
+ link.download='acc_export.png';
+ link.href=canvas.toDataURL('image/png');
+ link.click();
+});
 
-  log("🎯 Hoàn thành!");
-
- }catch(e){
-   log("❌ Lỗi:",e.message);
-   alert("Lỗi: "+e.message);
- }
-};
-
-$('btnDownload').onclick=()=>{
-  const a=document.createElement('a');
-  a.download="acc_output.png";
-  a.href=canvas.toDataURL('image/png');
-  a.click();
-};
 })();
 </script>
 </body>
