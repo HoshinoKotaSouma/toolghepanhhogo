@@ -2,65 +2,67 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8" />
-<title>Tool Ghép Skin (Auto) — Dán info & Ghép vào ảnh nền</title>
+<title>Tool Ghép Skin V3 — Hỗ trợ iPhone Upload Ảnh</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
   :root{--accent:#1f8ef1;--bg:#f5f7fb;--card:#ffffff}
   body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#111}
   .wrap{max-width:1100px;margin:20px auto;padding:18px}
-  header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
   h1{font-size:18px;margin:0}
   .panel{display:grid;grid-template-columns:1fr 420px;gap:14px}
   .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 6px 20px rgba(16,24,40,0.04)}
   textarea{width:100%;height:120px;border-radius:8px;padding:10px;border:1px solid #e6e9ef;resize:vertical;font-family:monospace;}
-  .row{display:flex;gap:8px;align-items:center}
   button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer}
   button.secondary{background:#4caf50}
+  input[type=text]{width:100%;padding:8px 10px;margin:5px 0;border:1px solid #ddd;border-radius:6px}
+  input[type=file]{display:block;margin:5px 0}
   .small{font-size:13px;color:#555}
-  #previewWrap{display:flex;flex-direction:column;align-items:center;gap:8px}
   canvas{max-width:100%;border-radius:8px;background:#fff;border:1px solid #ddd}
   .skinsGrid{display:flex;flex-wrap:wrap;gap:6px;padding:6px;max-height:360px;overflow:auto}
   .skinThumb{width:60px;height:60px;border-radius:6px;border:1px solid #eee;display:flex;align-items:center;justify-content:center;background:#fafafa;overflow:hidden}
   .skinThumb img{width:100%;height:100%;object-fit:contain}
-  footer{margin-top:14px;text-align:right;color:#666;font-size:13px}
   .log{font-family:monospace;background:#0f1724;color:#bcd;padding:8px;border-radius:6px;max-height:140px;overflow:auto;font-size:12px}
+  @media(max-width:900px){.panel{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Tool Ghép Skin → Ảnh nền (ToadoXyz + FileIdtuong)</h1>
+    <h1>Tool Ghép Skin Liên Quân V3 — Hỗ trợ Upload iPhone</h1>
   </header>
 
   <div class="panel">
     <!-- left: controls -->
     <div class="card">
-      <div class="small">Dán chuỗi thông tin acc (ví dụ giống mẫu bạn cung cấp):</div>
-      <textarea id="accText" placeholder="vd: Lamonskt:37a31997 | NAME : _Only•Gyoˇ☻ | ... | TƯỚNG : 105 | SKIN : 253 | SS : 5 [Yorn..., ...] | ..."></textarea>
+      <div class="small">Dán chuỗi thông tin acc:</div>
+      <textarea id="accText" placeholder="vd: NAME : Fritz' | SKIN : 307 | ... | SS : [Yorn Long thần soái, ...]"></textarea>
 
-      <div style="display:flex;gap:8px;margin-top:8px">
+      <div class="small" style="margin-top:10px">Ảnh acc:</div>
+      <input type="file" id="uploadAcc" accept="image/*">
+
+      <div class="small">Ảnh lịch sử đấu:</div>
+      <input type="file" id="uploadLichsu" accept="image/*">
+
+      <div class="small">Nhập mã số acc (MS):</div>
+      <input type="text" id="msCode" placeholder="vd: 001">
+
+      <div style="display:flex;gap:8px;margin-top:10px">
         <button id="btnLoad">Load & Ghép</button>
         <button id="btnDownload" class="secondary">Tải ảnh</button>
-        <select id="scaleSelect" style="margin-left:auto;padding:6px;border-radius:6px;border:1px solid #ddd">
-          <option value="1">Canvas scale 1x</option>
-          <option value="1.5">Canvas scale 1.5x</option>
-          <option value="2">Canvas scale 2x</option>
-        </select>
       </div>
 
       <div style="margin-top:10px">
-        <div class="small">Cấu hình nguồn dữ liệu (mặc định dùng repo bạn đã cung cấp):</div>
-        <div class="small" style="margin-top:6px">Toado (toạ độ & ảnh nền): <code id="toadoUrl" style="font-family:monospace;color:#333">https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/ToadoXyz.json</code></div>
-        <div class="small">FileId (map skin → url): <code id="fileIdUrl" style="font-family:monospace;color:#333">https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/FileIdtuong.json</code></div>
+        <div class="small">Dữ liệu toạ độ (ToadoXyz):</div>
+        <code id="toadoUrl" style="font-family:monospace;color:#333;font-size:12px">https://raw.githubusercontent.com/HoshinoKotaSouma/shopaccbeorin/main/ToadoXyz.json</code>
       </div>
 
       <hr style="margin:12px 0;border:none;border-top:1px solid #eee"/>
-
-      <div class="small">Preview thumbnails (skin từ crop sẽ hiện ở đây):</div>
+      <div class="small">Preview skin:</div>
       <div class="skinsGrid card" id="thumbs"></div>
 
       <div style="margin-top:10px">
-        <div class="small">Log / trạng thái:</div>
+        <div class="small">Log:</div>
         <div class="log" id="log"></div>
       </div>
     </div>
@@ -69,258 +71,95 @@
     <div class="card" id="previewWrap">
       <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
         <div class="small">Canvas kết quả</div>
-        <div class="small" id="countInfo">Tướng: 0 — SkinCount: 0 — Ghép: 0</div>
+        <div class="small" id="countInfo">Tướng: 0 — Skin: 0 — Ghép: 0</div>
       </div>
       <canvas id="mainCanvas" width="807" height="1280"></canvas>
     </div>
   </div>
-
-  <footer class="small">Ghép sát nhau, bỏ trống minimal, vẫn giữ chức năng cũ.</footer>
 </div>
 
 <script>
 (async()=>{
-
-const TOADO_URL = "https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/ToadoXyz.json";
+const TOADO_URL = "https://raw.githubusercontent.com/HoshinoKotaSouma/shopaccbeorin/main/ToadoXyz.json";
 const FILEID_URL = "https://raw.githubusercontent.com/HoshinoKotaSouma/ctvhogo/main/FileIdtuong.json";
+const $ = id=>document.getElementById(id);
+const logEl=$('log');
+function log(...a){logEl.textContent+=a.join(' ')+"\\n";logEl.scrollTop=99999;}
 
-const $ = id => document.getElementById(id);
-const logEl = $('log');
-function log(...args){ logEl.innerText += args.map(a=> (typeof a==='object'?JSON.stringify(a):String(a))).join(' ') + "\n"; logEl.scrollTop = 99999; }
+async function fetchJSON(url){const r=await fetch(url);return await r.json();}
+function loadImage(src){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
+function fileToDataURL(file){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.readAsDataURL(file);});}
+function parseAcc(t){const r={tuong:0,skin:0,skins:[]};if(!t)return r;
+const tuong=t.match(/TƯỚNG\\s*:\\s*(\\d+)/i);const sk=t.match(/SKIN\\s*:\\s*(\\d+)/i);
+r.tuong=tuong?+tuong[1]:0;r.skin=sk?+sk[1]:0;
+const m=[...t.matchAll(/\\[([^\\]]+)\\]/g)];r.skins=m.flatMap(x=>x[1].split(',').map(s=>s.trim())).filter(Boolean);return r;}
 
-function githubBlobToRaw(u){
-  if(!u) return u;
-  if(u.includes("raw.githubusercontent.com")) return u;
-  return u.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/");
-}
+const canvas=$('mainCanvas'),ctx=canvas.getContext('2d');
+const toado=await fetchJSON(TOADO_URL);
+const fileMap=await fetchJSON(FILEID_URL);
 
-async function fetchJSON(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('Fetch JSON lỗi: ' + url + ' → ' + r.status);
-  return await r.json();
-}
+$('btnLoad').onclick=async()=>{
+  log("Bắt đầu xử lý...");
+  const acc=parseAcc($('accText').value.trim());
+  $('countInfo').textContent=`Tướng: ${acc.tuong} — Skin: ${acc.skin} — Ghép: ${acc.skins.length}`;
+  const bg=await loadImage(toado.image.url);
+  canvas.width=bg.width;canvas.height=bg.height;ctx.drawImage(bg,0,0);
 
-function loadImage(url, timeout=12000){
-  return new Promise((resolve, reject)=>{
-    if(!url){ return reject(new Error("No URL")); }
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    let done=false;
-    const t = setTimeout(()=>{ if(!done){ done=true; reject(new Error("Timeout "+url)); } }, timeout);
-    img.onload = ()=>{ if(done)return; done=true; clearTimeout(t); resolve(img); };
-    img.onerror = ()=>{ if(done)return; done=true; clearTimeout(t); reject(new Error("Load error "+url)); };
-    img.src = url;
-  });
-}
-
-function parseAcc(text){
-  const res = { tuong:0, skinCount:0, cropSkins:[] };
-  if(!text) return res;
-  const tuong = text.match(/TƯỚNG\s*:\s*(\d+)/i);
-  const skinCount = text.match(/SKIN\s*:\s*(\d+)/i);
-  res.tuong = tuong ? parseInt(tuong[1]) : 0;
-  res.skinCount = skinCount ? parseInt(skinCount[1]) : 0;
-  const bracketRe = /\[([^\]]+)\]/g;
-  let m;
-  const arr=[];
-  while((m = bracketRe.exec(text)) !== null){
-    const inside = m[1];
-    inside.split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>arr.push(s));
-  }
-  res.cropSkins = [...new Set(arr)].filter(Boolean);
-  return res;
-}
-
-const canvas = $('mainCanvas');
-let ctx = canvas.getContext('2d');
-let toadoData = null;
-let fileIdArr = null;
-let fileIdMap = {};
-
-async function initData(){
-  log("Fetching ToadoXyz & FileIdtuong...");
-  try{
-    toadoData = await fetchJSON(TOADO_URL);
-    fileIdArr = await fetchJSON(FILEID_URL);
-    fileIdMap = {};
-    if(Array.isArray(fileIdArr)){
-      for(const it of fileIdArr){
-        const name = (it.skin||'').trim();
-        let url = it.url || it.raw || '';
-        if(url) url = githubBlobToRaw(url);
-        fileIdMap[name] = url;
-      }
-    } else if(typeof fileIdArr==='object'){
-      for(const k of Object.keys(fileIdArr)){
-        let url = fileIdArr[k];
-        if(typeof url==='string') url = githubBlobToRaw(url);
-        fileIdMap[k] = url;
-      }
-    }
-    log("Loaded mapping entries:", Object.keys(fileIdMap).length);
-  }catch(err){
-    log("Lỗi khi tải dữ liệu:", err.message);
-    throw err;
-  }
-}
-
-function getScale(){
-  const origW = (toadoData && toadoData.image && toadoData.image.originalWidth) || canvas.width;
-  const origH = (toadoData && toadoData.image && toadoData.image.originalHeight) || canvas.height;
-  return { scaleX: canvas.width / origW, scaleY: canvas.height / origH };
-}
-
-function drawBaseImage(img){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(img,0,0,canvas.width,canvas.height);
-}
-
-function drawNumberAt(coordObj, text, color="#ff3b3b", size=36){
-  if(!coordObj) return;
-  const {scaleX, scaleY} = getScale();
-  const x = coordObj.x * scaleX;
-  const y = coordObj.y * scaleY;
-  ctx.fillStyle = color;
-  ctx.font = `bold ${size}px sans-serif`;
-  ctx.strokeStyle = "#fff";
-  ctx.lineWidth = Math.max(2, Math.round(size/12));
-  ctx.strokeText(String(text), x+1, y+1);
-  ctx.fillText(String(text), x+1, y+1);
-}
-
-async function drawSkinsInCrop(cropRegion, skinNames){
-  if(!cropRegion || skinNames.length===0) return 0;
-  const {scaleX, scaleY} = getScale();
-  const cx = cropRegion.x * scaleX;
-  const cy = cropRegion.y * scaleY;
-  const cw = cropRegion.w * scaleX;
-  const ch = cropRegion.h * scaleY;
-
-  const n = skinNames.length;
-  const cols = Math.ceil(Math.sqrt(n * (cw/ch)));
-  const rows = Math.ceil(n / cols);
-  const tileW = cw / cols;
-  const tileH = ch / rows;
-
-  const imgs = await Promise.all(skinNames.map(async name=>{
-    const url = fileIdMap[name] || null;
-    if(!url) return {name,img:null};
-    try{ return {name,img:await loadImage(url,10000)}; }
-    catch(e){ return {name,img:null}; }
-  }));
-
-  let idx=0;
-  for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-      if(idx>=imgs.length) break;
-      const it = imgs[idx];
-      const dx = cx + c*tileW;
-      const dy = cy + r*tileH;
-      if(it.img){
-        const scale = Math.max(tileW/it.img.width, tileH/it.img.height);
-        const dw = it.img.width*scale;
-        const dh = it.img.height*scale;
-        const px = dx + (tileW - dw)/2;
-        const py = dy + (tileH - dh)/2;
-        ctx.drawImage(it.img, px, py, dw, dh);
-      } else {
-        ctx.fillStyle="#f3f4f6";
-        ctx.fillRect(dx,dy,tileW,tileH);
-        ctx.fillStyle="#333";
-        ctx.font="10px sans-serif";
-        ctx.textAlign="center";
-        ctx.textBaseline="middle";
-        ctx.fillText(it.name, dx+tileW/2, dy+tileH/2);
-      }
-      idx++;
-    }
+  // --- ảnh acc
+  const accFile=$('uploadAcc').files[0];
+  if(accFile){const img=await loadImage(await fileToDataURL(accFile));
+    const r=toado.extra.acc;
+    ctx.drawImage(img,r.x,r.y,r.w,r.h);
+    log("Đã chèn ảnh acc");
   }
 
-  return imgs.length;
-}
-
-await initData().catch(e=>{
-  log("Không thể load dữ liệu ban đầu: " + e.message);
-});
-
-$('btnLoad').addEventListener('click', async ()=>{
-  try{
-    log("Bắt đầu xử lý...");
-    const accText = $('accText').value.trim();
-    if(!accText){ alert("Dán chuỗi acc vào ô bên trái."); return; }
-    const parsed = parseAcc(accText);
-    log("Parsed:", parsed);
-
-    $('countInfo').innerText = `Tướng: ${parsed.tuong} — SkinCount: ${parsed.skinCount} — Ghép: 0`;
-
-    const baseUrl = toadoData.image && (toadoData.image.url || toadoData.image.original && toadoData.image.original.url) || null;
-    if(!baseUrl) throw new Error("Không tìm thấy image url trong ToadoXyz.json");
-    log("Tải ảnh nền:", baseUrl);
-    let baseImg;
-    try { baseImg = await loadImage(baseUrl,15000); }
-    catch(err){ 
-      const alt = githubBlobToRaw(baseUrl);
-      baseImg = await loadImage(alt,15000);
-    }
-
-    const scaleChoice = parseFloat($('scaleSelect').value) || 1;
-    const origW = (toadoData.image.originalWidth) || baseImg.width;
-    const origH = (toadoData.image.originalHeight) || baseImg.height;
-    canvas.width = Math.round(origW * scaleChoice);
-    canvas.height = Math.round(origH * scaleChoice);
-
-    drawBaseImage(baseImg);
-
-    const tuongCoord = (toadoData.tuong && toadoData.tuong.original) || (toadoData.tuong && toadoData.tuong);
-    const skinCoord = (toadoData.skin && toadoData.skin.original) || (toadoData.skin && toadoData.skin);
-    if(tuongCoord){
-      drawNumberAt(tuongCoord, parsed.tuong, "#ff3b3b", Math.max(24, Math.round(36 * scaleChoice)));
-    }
-    if(skinCoord){
-      drawNumberAt(skinCoord, parsed.skinCount, "#1f8ef1", Math.max(24, Math.round(36 * scaleChoice)));
-    }
-
-    const cropRegion = (toadoData.crop && toadoData.crop.original) || (toadoData.crop && toadoData.crop);
-    log("Crop region:", cropRegion);
-
-    const cropSkins = parsed.cropSkins || [];
-    log("Tổng skin trong bracket (crop list):", cropSkins.length);
-    const thumbs = $('thumbs'); thumbs.innerHTML = '';
-
-    const placed = await drawSkinsInCrop(cropRegion, cropSkins);
-
-    for(const nm of cropSkins){
-      const div = document.createElement('div'); div.className='skinThumb';
-      const url = fileIdMap[nm] || '';
-      if(url){
-        const im = document.createElement('img'); im.src = url; im.alt = nm;
-        im.onerror = ()=>{ im.style.opacity=0.5; im.alt = "err"; }
-        div.appendChild(im);
-      } else {
-        const t = document.createElement('div'); t.style.padding='6px'; t.style.fontSize='11px'; t.style.textAlign='center';
-        t.innerText = nm.length>12? nm.slice(0,10)+"..." : nm;
-        div.appendChild(t);
-      }
-      thumbs.appendChild(div);
-    }
-
-    $('countInfo').innerText = `Tướng: ${parsed.tuong} — SkinCount: ${parsed.skinCount} — Ghép: ${placed}`;
-    log("Hoàn thành. Ghép được:", placed);
-
-  }catch(err){
-    log("Lỗi:", err.message || err);
-    console.error(err);
-    alert("Có lỗi: " + (err.message || err));
+  // --- ảnh lịch sử đấu
+  const lichFile=$('uploadLichsu').files[0];
+  if(lichFile){const img=await loadImage(await fileToDataURL(lichFile));
+    const r=toado.extra.lichsu;
+    ctx.drawImage(img,r.x,r.y,r.w,r.h);
+    log("Đã chèn ảnh lịch sử đấu");
   }
-});
 
-$('btnDownload').addEventListener('click', ()=>{
-  const link = document.createElement('a');
-  link.download = 'acc_collage.png';
-  link.href = canvas.toDataURL('image/png');
+  // --- hiển thị MS
+  const code=$('msCode').value.trim();
+  if(code){const ms=toado.ms;ctx.font=`bold ${ms.fontSize}px Arial`;ctx.fillStyle="#fff";
+    ctx.strokeStyle="#000";ctx.lineWidth=4;
+    ctx.strokeText(`MS : ${code}`,ms.x,ms.y);
+    ctx.fillText(`MS : ${code}`,ms.x,ms.y);
+  }
+
+  // --- số tướng & skin
+  const tuong=toado.tuong.original,skin=toado.skin.original;
+  ctx.font="bold 36px Arial";ctx.fillStyle="#ff3b3b";ctx.strokeStyle="#000";ctx.lineWidth=3;
+  ctx.strokeText(acc.tuong,tuong.x,tuong.y);ctx.fillText(acc.tuong,tuong.x,tuong.y);
+  ctx.fillStyle="#1f8ef1";
+  ctx.strokeText(acc.skin,skin.x,skin.y);ctx.fillText(acc.skin,skin.x,skin.y);
+
+  // --- ghép skin vào crop
+  const crop=toado.crop.original;
+  const skins=acc.skins.slice(0,30); // giới hạn để nhẹ
+  const cols=Math.ceil(Math.sqrt(skins.length*(crop.w/crop.h)));
+  const rows=Math.ceil(skins.length/cols);
+  const tileW=crop.w/cols,tileH=crop.h/rows;
+  let i=0;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    if(i>=skins.length)break;
+    const s=skins[i++],url=fileMap[s];
+    if(url){try{const img=await loadImage(url);
+      const dw=tileW,dh=tileH;
+      ctx.drawImage(img,crop.x+c*tileW,crop.y+r*tileH,dw,dh);
+    }catch{}}
+  }
+  log("Ghép xong!");
+};
+
+$('btnDownload').onclick=()=>{
+  const link=document.createElement('a');
+  link.download='acc_ghép.png';
+  link.href=canvas.toDataURL('image/png');
   link.click();
-});
-
+};
 })();
 </script>
 </body>
